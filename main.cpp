@@ -2,6 +2,8 @@
 #include <ctime>
 #include <iostream>
 
+//Hello from Russia
+
 #define COLORS_COUNT 5
 #define LAYER_HEIGHT 10
 #define LAYER_WIDTH 6
