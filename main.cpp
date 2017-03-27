@@ -16,7 +16,6 @@ using namespace std;
  Performs the Breadth-First Graph search for both directed and
  undirected graphs. This algorithm explores all the findable nodes
  in "layers".
- @author Bibek Subedi
 *****************************************************************/
 
 
@@ -107,10 +106,6 @@ Class Graph represents a Graph [V,E] having vertices V and
 edges E.
 
 ************************************************************/
-struct cell {
-
-};
-
 class Graph {
 private:
     int n; /// n is the number of vertices in the graph
@@ -194,13 +189,20 @@ void Graph::BFS(int s) {
 
     /** Keeps track of explored vertices */
     bool *explored = new bool[n+1];
+    int *move = new int[n+1];
+    int moveCnt = 1;
 
     /** Initailized all vertices as unexplored */
     for (int i = 1; i <= n; ++i)
         explored[i] = false;
 
+    /** Initailized all vertices at the 0 move */
+    for (int i = 1; i <= n; ++i)
+        move[i] = 1000;
+
     /** Push initial vertex to the queue */
     Q.enqueue(s);
+    move[s] = moveCnt; /** mark the first move on the start vertex */
     explored[s] = true; /** mark it as explored */
     cout << "Breadth first Search starting from vertex ";
     cout << s << " : " << endl;
@@ -215,7 +217,7 @@ void Graph::BFS(int s) {
 
         /** From the explored vertex v try to explore all the
         connected vertices */
-        for (int w = 1; w <= n; ++w)
+        for (int w = 1; w <= n; ++w) {
 
             /** Explores the vertex w if it is connected to v
             and and if it is unexplored */
@@ -224,8 +226,21 @@ void Graph::BFS(int s) {
                 Q.enqueue(w);
                 /** marks the vertex w as visited */
                 explored[w] = true;
+                /** marks the moveCnt to the vertex and his neighboor */
+                if ( moveCnt < move[w] ) move[w] = moveCnt;
             }
+        }
+
+        if ( isvalidI(i-1) ) g.addEdge(i*LAYER_WIDTH+j+1,(i-1)*LAYER_WIDTH+j+1);
+        if ( isvalidI(i+1) ) g.addEdge(i*LAYER_WIDTH+j+1,(i+1)*LAYER_WIDTH+j+1);
+        if ( isvalidJ(j-1) ) g.addEdge(i*LAYER_WIDTH+j+1,i*LAYER_WIDTH+j);
+        if ( isvalidJ(j+1) ) g.addEdge(i*LAYER_WIDTH+j+1,i*LAYER_WIDTH+j+2);
+
+        moveCnt++;
     }
+
+
+
     cout << endl;
     delete [] explored;
 }
