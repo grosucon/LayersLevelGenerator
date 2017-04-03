@@ -13,7 +13,7 @@ using namespace std;
 
 /****************************************************/
 struct node {
-    cell info;
+    int info;
     node *next;
 };
 
@@ -25,7 +25,7 @@ public:
     Queue();
     ~Queue();
     bool isEmpty();
-    void enqueue(cell);
+    void enqueue(int);
     int dequeue();
 };
 
@@ -38,7 +38,7 @@ Queue::~Queue() {
     delete front;
 }
 
-void Queue::enqueue(cell data) {
+void Queue::enqueue(int data) {
     node *temp = new node();
     temp->info = data;
     temp->next = NULL;
@@ -52,14 +52,14 @@ void Queue::enqueue(cell data) {
 
 int Queue::dequeue() {
     node *temp = new node();
-    cell value;
+    int value;
     if(front != NULL) {
         temp = front;
         value = temp->info;
         front = front->next;
         delete temp;
     }
-    return value.position;
+    return value;
 }
 
 bool Queue::isEmpty() {
@@ -107,7 +107,7 @@ void Graph::GenLay() {
             level[i][j].visited = false;    /** Initailized all cells as unvisited */
             level[i][j].cntneighb = 0;
             level[i][j].move = 999;
-            level[i][j].position = i*LAYER_HEIGHT + j + 1;
+            level[i][j].position = i*LAYER_WIDTH + j + 1;
             if ( j != 0 && rand() % 2 && rand() % 2 ) level[i][j].color=level[i][j-1].color; /** easy levels 2 rands                 */
             if ( i != 0 && rand() % 2 && rand() % 2 ) level[i][j].color=level[i-1][j].color; /** for more hard levels use 3 rands    */
         }
@@ -142,7 +142,7 @@ void Graph::BFS() {
     Queue Q;
 
     /** Push initial cell to the queue */
-    Q.enqueue(level[start_x][start_y]);
+    Q.enqueue(level[start_x][start_y].position);
 
     level[start_x][start_y].move = 0;         /** mark the first move on the start cell */
     level[start_x][start_y].visited = true;   /** mark it as visited */
@@ -154,22 +154,22 @@ void Graph::BFS() {
 
         /** Pop the cell from the queue */
         int v = Q.dequeue();
-        int x = v/(LAYER_HEIGHT-1);
-        int y = v % (LAYER_HEIGHT-1);
+        int x = (v-1) / LAYER_WIDTH;
+        int y = (v-1) % LAYER_WIDTH;
 
         /** display the visited cell */
         cout << v << " ";
 
         /** From the visited cell v visit all neighbours */
         for (int i = 0; i<level[x][y].cntneighb; i++) {
+            int x1 = level[x][y].x[i];
+            int y1 = level[x][y].y[i];
 
             /** Visit the cell if it is unvisited */
-            if ( !level[x][y].visited ) {
+            if ( !level[x1][y1].visited ) {
 
                 /** adds the cell w to the queue */
-                int x1 = level[x][y].x[i];
-                int y1 = level[x][y].y[i];
-                Q.enqueue(level[x1][y1]);
+                Q.enqueue(level[x1][y1].position);
 
                 /** marks the cell w as visited */
                 level[x1][y1].visited = true;
