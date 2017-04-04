@@ -4,7 +4,7 @@
 #include <cmath>
 using namespace std;
 
-#define COLORS_COUNT 5 // colors numbers 0-4
+#define COLORS_COUNT 5 /** colors numbers 0-4 */
 #define LAYER_HEIGHT 10
 #define LAYER_WIDTH 6
 #define START_NR 5
@@ -42,9 +42,9 @@ void Queue::enqueue(int data) {
     node *temp = new node();
     temp->info = data;
     temp->next = NULL;
-    if(front == NULL){
+    if( front == NULL ) {
         front = temp;
-    }else{
+    } else {
         rear->next = temp;
     }
     rear = temp;
@@ -53,7 +53,7 @@ void Queue::enqueue(int data) {
 int Queue::dequeue() {
     node *temp = new node();
     int value;
-    if(front != NULL) {
+    if( front != NULL ) {
         temp = front;
         value = temp->info;
         front = front->next;
@@ -68,11 +68,12 @@ bool Queue::isEmpty() {
 /****************************************************/
 struct cell {
     int color;
+    int groupID; /** ID of color group */
     int move;
     int position;
     int cntneighb;
-    int x[4]; /**  coordinates    */
-    int y[4]; /**  of neighbours  */
+    int x[4]; /** coordinates of      */
+    int y[4]; /** neighbours on level */
     bool visited;
 };
 
@@ -81,11 +82,11 @@ private:
     cell level[LAYER_HEIGHT][LAYER_WIDTH];
 
     bool isvalidI(int i) {
-        if (i < 0 || i >= LAYER_HEIGHT) return false;
+        if ( i < 0 || i >= LAYER_HEIGHT ) return false;
         return true;
     }
     bool isvalidJ(int j) {
-        if (j >= LAYER_WIDTH || j < 0) return false;
+        if ( j >= LAYER_WIDTH || j < 0 ) return false;
         return true;
     }
 public:
@@ -95,6 +96,7 @@ public:
     ~Graph() {};
     void GenLay();
     void setNeighbours();
+    void setIDgroupcolor();
     void BFS();
 };
 /****************************************************/
@@ -104,22 +106,23 @@ void Graph::GenLay() {
     for (int i=0; i<LAYER_HEIGHT; i++) {
         for (int j = 0; j < LAYER_WIDTH; j++) {
             level[i][j].color = rand() % COLORS_COUNT;
-            level[i][j].visited = false;    /** Initailized all cells as unvisited */
+            level[i][j].visited = false;    /** initailized all cells as unvisited */
             level[i][j].cntneighb = 0;
             level[i][j].move = 999;
             level[i][j].position = i*LAYER_WIDTH + j + 1;
-            if ( j != 0 && rand() % 2 && rand() % 2 ) level[i][j].color=level[i][j-1].color; /** easy levels 2 rands                 */
-            if ( i != 0 && rand() % 2 && rand() % 2 ) level[i][j].color=level[i-1][j].color; /** for more hard levels use 3 rands    */
+            level[i][j].groupID = level[i][j].position+10;
+            if ( j != 0 && rand() % 2 && rand() % 2 ) { level[i][j].color=level[i][j-1].color; } /** easy levels 2 rands                 */
+            if ( i != 0 && rand() % 2 && rand() % 2 ) { level[i][j].color=level[i-1][j].color; } /** for more hard levels use 3 rands    */
         }
     }
 
     level[start_x = (LAYER_HEIGHT-1)][start_y = rand() % LAYER_WIDTH].color=START_NR; /** rand start and */
     level[finish_x = 0][finish_y = rand() % LAYER_WIDTH].color=FINISH_NR;             /** final cell     */
 
-    for (int i=0; i<LAYER_HEIGHT; i++) {
+    for (int i = 0; i < LAYER_HEIGHT; i++) {
         for (int j = 0; j < LAYER_WIDTH; j++) {
             cout << level[i][j].color;
-            if (j == LAYER_WIDTH - 1) cout << endl;
+            if ( j == LAYER_WIDTH - 1 ) cout << endl;
             else cout << " ";
         }
     }
@@ -129,19 +132,70 @@ void Graph::setNeighbours() {
     int cnt;
     for (int i = 0; i < LAYER_HEIGHT; i++) {
         for (int j = 0; j < LAYER_WIDTH; j++) {
-            if ( isvalidI(i-1) ) { cnt=level[i][j].cntneighb++; level[i][j].x[cnt]=i-1; level[i][j].y[cnt]=j; }
-            if ( isvalidI(i+1) ) { cnt=level[i][j].cntneighb++; level[i][j].x[cnt]=i+1; level[i][j].y[cnt]=j; }
             if ( isvalidJ(j-1) ) { cnt=level[i][j].cntneighb++; level[i][j].x[cnt]=i; level[i][j].y[cnt]=j-1; }
+            if ( isvalidI(i-1) ) { cnt=level[i][j].cntneighb++; level[i][j].x[cnt]=i-1; level[i][j].y[cnt]=j; }
             if ( isvalidJ(j+1) ) { cnt=level[i][j].cntneighb++; level[i][j].x[cnt]=i; level[i][j].y[cnt]=j+1; }
+            if ( isvalidI(i+1) ) { cnt=level[i][j].cntneighb++; level[i][j].x[cnt]=i+1; level[i][j].y[cnt]=j; }
         }
     }
 }
+/****************************************************/
+void Graph::setIDgroupcolor() {
+    for (int i = 0; i < LAYER_HEIGHT; i++) {
+        for (int j = 0; j < LAYER_WIDTH; j++) {
+            int x,y;
+            if ( isvalidJ(j-1) && (level[i][j].color==level[i][j-1].color) ) level[i][j].groupID = level[i][j-1].groupID;
+            if ( isvalidI(i-1) && (level[i][j].color==level[i-1][j].color) ) level[i][j].groupID = level[i-1][j].groupID;
+            if ( isvalidJ(j+1) && (level[i][j].color==level[i][j+1].color) ) level[i][j+1].groupID = level[i][j].groupID;
+            if ( isvalidI(i+1) && (level[i][j].color==level[i+1][j].color) ) level[i+1][j].groupID = level[i][j].groupID;
+            for (int n = 0; n < level[i][j].cntneighb; n++) {
+                x = level[i][j].x[n];
+                y = level[i][j].y[n];
+                if ( level[x][y].color==level[i][j].color ) {
+                    if ( x > i || y > j )
+                        level[i][j].groupID = level[x][y].groupID;
+                    else
+                        level[x][y].groupID = level[i][j].groupID;
+                }
+            }
+        }
+    }
 
-/*************Breadth First Search*******************/
+    for (int i = LAYER_HEIGHT-1; i >= 0; i--) {
+        for (int j = LAYER_WIDTH-1; j >= 0; j--) {
+            int x,y;
+            if ( isvalidJ(j+1) && (level[i][j].color==level[i][j+1].color) ) level[i][j].groupID = level[i][j+1].groupID;
+            if ( isvalidI(i+1) && (level[i][j].color==level[i+1][j].color) ) level[i][j].groupID = level[i+1][j].groupID;
+            if ( isvalidJ(j-1) && (level[i][j].color==level[i][j-1].color) ) level[i][j-1].groupID = level[i][j].groupID;
+            if ( isvalidI(i-1) && (level[i][j].color==level[i-1][j].color) ) level[i-1][j].groupID = level[i][j].groupID;
+            for (int n = level[i][j].cntneighb-1; n >= 0 ; n--) {
+                x = level[i][j].x[n];
+                y = level[i][j].y[n];
+                if ( level[x][y].color==level[i][j].color ) {
+                    if ( x > i || y > j )
+                        level[i][j].groupID = level[x][y].groupID;
+                    else
+                        level[x][y].groupID = level[i][j].groupID;
+                }
+            }
+        }
+    }
+
+    cout << endl;
+
+    for (int i = 0; i < LAYER_HEIGHT; i++) {
+        for (int j = 0; j < LAYER_WIDTH; j++) {
+            cout << level[i][j].groupID;
+            if ( j == LAYER_WIDTH - 1 ) cout << endl;
+            else cout << " ";
+        }
+    }
+}
+/*************Breadth Firs t Search*******************/
 void Graph::BFS() {
     Queue Q;
 
-    /** Push initial cell to the queue */
+    /** push initial cell to the queue */
     Q.enqueue(level[start_x][start_y].position);
 
     level[start_x][start_y].move = 0;         /** mark the first move on the start cell */
@@ -149,10 +203,10 @@ void Graph::BFS() {
     cout << "Breadth first Search starting from cell ";
     cout << level[start_x][start_y].position << " : " << endl;
 
-    /** Unless the queue is empty */
+    /** unless the queue is empty */
     while (!Q.isEmpty()) {
 
-        /** Pop the cell from the queue */
+        /** pop the cell from the queue */
         int v = Q.dequeue();
         int x = (v-1) / LAYER_WIDTH;
         int y = (v-1) % LAYER_WIDTH;
@@ -160,44 +214,35 @@ void Graph::BFS() {
         /** display the visited cell */
         cout << v << " ";
 
-        /** From the visited cell v visit all neighbours */
-        for (int i = 0; i<level[x][y].cntneighb; i++) {
+        /** from the visited cell visit all neighbours */
+        for (int i = 0; i < level[x][y].cntneighb; i++) {
             int x1 = level[x][y].x[i];
             int y1 = level[x][y].y[i];
 
-            /** Visit the cell if it is unvisited */
-            if ( !level[x1][y1].visited ) {
+            /** visit the cell if it is unvisited */
+            if (!level[x1][y1].visited) {
 
-                /** adds the cell w to the queue */
+                /** adds the cell to the queue */
                 Q.enqueue(level[x1][y1].position);
 
-                /** marks the cell w as visited */
+                /** marks the cell as visited */
                 level[x1][y1].visited = true;
 
+                if ( level[x][y].color == level[x1][y1].color ) level[x1][y1].move = level[x][y].move;
+
                 /** marks the move to the cell and his neighboor */
-                if (level[x][y].move < level[x1][y1].move) level[x1][y1].move = level[x][y].move+1;
-
-                for (int j = 0; j<level[x1][y1].cntneighb; j++) {
-
-                    int x2 = level[x][y].x[j];
-                    int y2 = level[x][y].y[j];
-
-                    if (level[x1][y1].color == level[x2][y2].color) {
-                        level[x2][y2].visited = true;
-                        level[x2][y2].move = level[x1][y1].move;
-                    }
-                }
+                if ( level[x][y].move < level[x1][y1].move ) level[x1][y1].move = level[x][y].move+1;
             }
         }
     }
 
 
-    cout << endl;
+    cout << endl << endl;
 
-    for (int i=0; i<LAYER_HEIGHT; i++) {
+    for (int i = 0; i < LAYER_HEIGHT; i++) {
         for (int j = 0; j < LAYER_WIDTH; j++) {
             cout << level[i][j].move;
-            if (j == LAYER_WIDTH - 1) cout << endl;
+            if ( j == LAYER_WIDTH - 1 ) cout << endl;
             else cout << " ";
         }
     }
@@ -205,7 +250,7 @@ void Graph::BFS() {
 /****************************************************/
 int main() {
 
-    /** Creates a graph */
+    /** Create a graph */
     Graph g;
 
     /** Generate the level */
@@ -213,6 +258,8 @@ int main() {
 
     /** Set the neighbours cells */
     g.setNeighbours();
+
+    g.setIDgroupcolor();
 
     /** Search the solution */
     g.BFS();
