@@ -1,5 +1,7 @@
 #include <iostream>
 #include <ctime>
+#include <vector>
+#include <algorithm>
 #include <cstdlib>
 #include <cmath>
 using namespace std;
@@ -77,9 +79,16 @@ struct cell {
     bool visited;
 };
 
+struct group {
+    int id;
+    vector <int> neighbours;
+    bool visited;
+};
+
 class Graph {
 private:
     cell level[LAYER_HEIGHT][LAYER_WIDTH];
+    vector <group> colorgroups;
 
     bool isvalidI(int i) {
         if ( i < 0 || i >= LAYER_HEIGHT ) return false;
@@ -97,6 +106,7 @@ public:
     void GenLay();
     void setNeighbours();
     void setIDgroupcolor();
+    void createColGr();
     void BFS();
 };
 /****************************************************/
@@ -126,6 +136,9 @@ void Graph::GenLay() {
             else cout << " ";
         }
     }
+
+    /** Set the neighbours cells */
+    setNeighbours();
 }
 /****************************************************/
 void Graph::setNeighbours() {
@@ -138,6 +151,9 @@ void Graph::setNeighbours() {
             if ( isvalidI(i+1) ) { cnt=level[i][j].cntneighb++; level[i][j].x[cnt]=i+1; level[i][j].y[cnt]=j; }
         }
     }
+
+    /** Set the different ID to each group color */
+    setIDgroupcolor();
 }
 /****************************************************/
 void Graph::setIDgroupcolor() {
@@ -181,6 +197,9 @@ void Graph::setIDgroupcolor() {
         }
     }
 
+    /** Create the color group and its neighbours */
+    createColGr();
+
     cout << endl;
 
     for (int i = 0; i < LAYER_HEIGHT; i++) {
@@ -189,6 +208,57 @@ void Graph::setIDgroupcolor() {
             if ( j == LAYER_WIDTH - 1 ) cout << endl;
             else cout << " ";
         }
+    }
+}
+/****************************************************/
+void Graph::createColGr() {
+    for (int i = 0; i < LAYER_HEIGHT; i++) {
+        for (int j = 0; j < LAYER_WIDTH; j++) {
+            bool exist = false;
+            int m,x,y;
+
+            for (int n = 0; n < colorgroups.size(); n++) {
+                if ( colorgroups[n].id == level[i][j].groupID ) {
+                    exist = true;
+                    m = n;
+                    break;
+                }
+            }
+
+            if ( exist ) {
+                for (int a = 0; a < level[i][j].cntneighb; a++) {
+                    x = level[i][j].x[a];   y = level[i][j].y[a];
+
+                    if ( level[x][y].groupID != level[i][j].groupID )
+                        colorgroups[m].neighbours.insert(colorgroups[m].neighbours.begin(), level[x][y].groupID);
+                }
+            }
+            else {
+                group newgroup;
+                vector <int> neigh;
+                for (int a = 0; a < level[i][j].cntneighb; a++) {
+                    x = level[i][j].x[a];   y = level[i][j].y[a];
+
+                    if ( level[x][y].groupID != level[i][j].groupID )
+                        neigh.insert(neigh.begin(), level[x][y].groupID);
+                }
+
+                newgroup = {level[i][j].groupID, neigh, false};
+                colorgroups.insert(colorgroups.end(), newgroup);
+            }
+        }
+    }
+
+    for (int n = 0; n < colorgroups.size(); n++) {
+        sort( colorgroups[n].neighbours.begin(), colorgroups[n].neighbours.end() );
+        colorgroups[n].neighbours.erase( unique( colorgroups[n].neighbours.begin(), colorgroups[n].neighbours.end() ), colorgroups[n].neighbours.end() );
+    }
+
+    for (int n = 0; n < colorgroups.size(); n++) {
+        cout << colorgroups[n].id << " : ";
+        for (int z = 0; z < colorgroups[n].neighbours.size(); z++)
+            cout << colorgroups[n].neighbours[z] << " ";
+        cout << endl;
     }
 }
 /*************Breadth Firs t Search*******************/
@@ -255,11 +325,6 @@ int main() {
 
     /** Generate the level */
     g.GenLay();
-
-    /** Set the neighbours cells */
-    g.setNeighbours();
-
-    g.setIDgroupcolor();
 
     /** Search the solution */
     g.BFS();
