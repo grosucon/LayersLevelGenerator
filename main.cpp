@@ -369,6 +369,6 @@ int main() {
     /** Create a graph */
     Graph g;
 
-    /** Testing and write 10 levels to file */
+    /** Testing and write n levels to file */
     g.testandWrite();
 }
