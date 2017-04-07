@@ -96,7 +96,6 @@ class Graph {
 private:
     cell level[LAYER_HEIGHT][LAYER_WIDTH];
     vector <group> colorgroups;
-    vector < vector <int> > ways;
 
     bool isvalidI(int i) {
         if ( i < 0 || i >= LAYER_HEIGHT ) return false;
