@@ -6,6 +6,7 @@
 #include <cmath>
 using namespace std;
 
+#define LEVEL_COMPLEXITY 0 /** 0 - easy | 1 - medium | 2 - hard */
 #define COLORS_COUNT 5 /** colors numbers 0-4 */
 #define LAYER_HEIGHT 10
 #define LAYER_WIDTH 6
@@ -131,8 +132,13 @@ void Graph::GenLay() {
             level[i][j].move = 999;
             level[i][j].position = i*LAYER_WIDTH + j + 1;
             level[i][j].groupID = level[i][j].position+10;
-            if ( j != 0 && rand() % 2 && rand() % 2 ) { level[i][j].color=level[i][j-1].color; } /** easy levels 2 rands                 */
-            if ( i != 0 && rand() % 2 && rand() % 2 ) { level[i][j].color=level[i-1][j].color; } /** for more hard levels use 3 rands    */
+            switch (LEVEL_COMPLEXITY) {
+                case 0: { /** easy levels 2 rands */
+                    if (j != 0 && rand() % 2 && rand() % 2) level[i][j].color = level[i][j - 1].color;
+                    if (i != 0 && rand() % 2 && rand() % 2) level[i][j].color = level[i - 1][j].color;
+                }
+
+            }
         }
     }
 
