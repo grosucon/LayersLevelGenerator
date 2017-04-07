@@ -6,7 +6,7 @@
 using namespace std;
 
 #define LEVEL_COMPLEXITY 0  /** 0 - easy | 1 - medium | 2 - hard */
-#define NUMBER_OF_LEVELS 10 /** Choose how much levels you want to generate */
+#define NUMBER_OF_LEVELS 1 /** Choose how much levels you want to generate */
 #define COLORS_COUNT 5      /** colors numbers 0-4 */
 #define LAYER_HEIGHT 10
 #define LAYER_WIDTH 6
@@ -86,10 +86,17 @@ struct group {
     int position;
 };
 
+struct move_cmp {
+    bool operator()(const group& x, const group& y) const {
+        return x.move < y.move;
+    }
+};
+
 class Graph {
 private:
     cell level[LAYER_HEIGHT][LAYER_WIDTH];
     vector <group> colorgroups;
+    vector < vector <int> > ways;
 
     bool isvalidI(int i) {
         if ( i < 0 || i >= LAYER_HEIGHT ) return false;
