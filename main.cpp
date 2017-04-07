@@ -83,6 +83,8 @@ struct group {
     int id;
     vector <int> neighbours;
     bool visited;
+    int move;
+    int position;
 };
 
 class Graph {
@@ -98,9 +100,17 @@ private:
         if ( j >= LAYER_WIDTH || j < 0 ) return false;
         return true;
     }
+
+    int IDtoPos(int id) {
+        for (int n = 0; n < (int)colorgroups.size(); n++)
+            if ( colorgroups[n].id == id )
+                return n;
+        return -1;
+    };
 public:
     int start_x, finish_x;
     int start_y, finish_y;
+    int start, finish;
     Graph() {};
     ~Graph() {};
     void GenLay();
@@ -217,7 +227,7 @@ void Graph::createColGr() {
             bool exist = false;
             int m,x,y;
 
-            for (int n = 0; n < colorgroups.size(); n++) {
+            for (int n = 0; n < (int)colorgroups.size(); n++) {
                 if ( colorgroups[n].id == level[i][j].groupID ) {
                     exist = true;
                     m = n;
@@ -243,78 +253,75 @@ void Graph::createColGr() {
                         neigh.insert(neigh.begin(), level[x][y].groupID);
                 }
 
-                newgroup = {level[i][j].groupID, neigh, false};
+                newgroup = {level[i][j].groupID, neigh, false, 999, 0};
                 colorgroups.insert(colorgroups.end(), newgroup);
             }
         }
     }
 
-    for (int n = 0; n < colorgroups.size(); n++) {
+    for (int n = 0; n < (int)colorgroups.size(); n++) {
         sort( colorgroups[n].neighbours.begin(), colorgroups[n].neighbours.end() );
         colorgroups[n].neighbours.erase( unique( colorgroups[n].neighbours.begin(), colorgroups[n].neighbours.end() ), colorgroups[n].neighbours.end() );
+        colorgroups[n].position = n;
+        if ( colorgroups[n].id == level[start_x][start_y].groupID )     start = n;   /** set start and */
+        if ( colorgroups[n].id == level[finish_x][finish_y].groupID )   finish = n;  /** final pos     */
     }
 
-    for (int n = 0; n < colorgroups.size(); n++) {
+    for (int n = 0; n < (int)colorgroups.size(); n++) {
         cout << colorgroups[n].id << " : ";
-        for (int z = 0; z < colorgroups[n].neighbours.size(); z++)
+        for (int z = 0; z < (int)colorgroups[n].neighbours.size(); z++)
             cout << colorgroups[n].neighbours[z] << " ";
         cout << endl;
     }
+
+    /** Set the min move to each group */
+    BFS();
 }
 /*************Breadth Firs t Search*******************/
 void Graph::BFS() {
     Queue Q;
 
-    /** push initial cell to the queue */
-    Q.enqueue(level[start_x][start_y].position);
+    /** push initial group to the queue */
+    Q.enqueue(start);
 
-    level[start_x][start_y].move = 0;         /** mark the first move on the start cell */
-    level[start_x][start_y].visited = true;   /** mark it as visited */
-    cout << "Breadth first Search starting from cell ";
-    cout << level[start_x][start_y].position << " : " << endl;
+    colorgroups[start].move = 0;         /** mark the first move on the start group */
+    colorgroups[start].visited = true;   /** mark it as visited */
+    cout << "Breadth first Search starting from group ";
+    cout << colorgroups[start].id << " : " << endl;
 
     /** unless the queue is empty */
     while (!Q.isEmpty()) {
 
-        /** pop the cell from the queue */
+        /** pop the group from the queue */
         int v = Q.dequeue();
-        int x = (v-1) / LAYER_WIDTH;
-        int y = (v-1) % LAYER_WIDTH;
 
-        /** display the visited cell */
-        cout << v << " ";
+        /** display the visited group */
+        cout << colorgroups[v].id << " ";
 
-        /** from the visited cell visit all neighbours */
-        for (int i = 0; i < level[x][y].cntneighb; i++) {
-            int x1 = level[x][y].x[i];
-            int y1 = level[x][y].y[i];
+        /** from the visited group visit all neighbours */
+        for (int i = 0; i < (int)colorgroups[v].neighbours.size(); i++) {
 
-            /** visit the cell if it is unvisited */
-            if (!level[x1][y1].visited) {
+            int w = IDtoPos(colorgroups[v].neighbours[i]);
 
-                /** adds the cell to the queue */
-                Q.enqueue(level[x1][y1].position);
+            /** visit the group if it is unvisited */
+            if ( !colorgroups[w].visited ) {
+                /** adds the group to the queue */
+                Q.enqueue(colorgroups[w].position);
 
-                /** marks the cell as visited */
-                level[x1][y1].visited = true;
-
-                if ( level[x][y].color == level[x1][y1].color ) level[x1][y1].move = level[x][y].move;
-
-                /** marks the move to the cell and his neighboor */
-                if ( level[x][y].move < level[x1][y1].move ) level[x1][y1].move = level[x][y].move+1;
+                /** marks the group as visited */
+                colorgroups[w].visited = true;
             }
+
+                /** marks the move to the group */
+                if ( colorgroups[w].move > (colorgroups[v].move + 1) ) colorgroups[w].move = colorgroups[v].move+1;
         }
     }
 
 
     cout << endl << endl;
 
-    for (int i = 0; i < LAYER_HEIGHT; i++) {
-        for (int j = 0; j < LAYER_WIDTH; j++) {
-            cout << level[i][j].move;
-            if ( j == LAYER_WIDTH - 1 ) cout << endl;
-            else cout << " ";
-        }
+    for (int n = 0; n < (int)colorgroups.size(); n++) {
+        cout << colorgroups[n].id << " : " << colorgroups[n].move << endl;
     }
 }
 /****************************************************/
@@ -325,7 +332,4 @@ int main() {
 
     /** Generate the level */
     g.GenLay();
-
-    /** Search the solution */
-    g.BFS();
 }
