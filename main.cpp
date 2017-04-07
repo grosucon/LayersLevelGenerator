@@ -2,12 +2,12 @@
 #include <ctime>
 #include <vector>
 #include <algorithm>
-#include <cstdlib>
-#include <cmath>
+#include <fstream>
 using namespace std;
 
-#define LEVEL_COMPLEXITY 0 /** 0 - easy | 1 - medium | 2 - hard */
-#define COLORS_COUNT 5 /** colors numbers 0-4 */
+#define LEVEL_COMPLEXITY 0  /** 0 - easy | 1 - medium | 2 - hard */
+#define NUMBER_OF_LEVELS 10 /** Choose how much levels you want to generate */
+#define COLORS_COUNT 5      /** colors numbers 0-4 */
 #define LAYER_HEIGHT 10
 #define LAYER_WIDTH 6
 #define START_NR 5
@@ -72,12 +72,10 @@ bool Queue::isEmpty() {
 struct cell {
     int color;
     int groupID; /** ID of color group */
-    int move;
     int position;
     int cntneighb;
     int x[4]; /** coordinates of      */
     int y[4]; /** neighbours on level */
-    bool visited;
 };
 
 struct group {
@@ -119,6 +117,7 @@ public:
     void setIDgroupcolor();
     void createColGr();
     void BFS();
+    void testandWrite();
 };
 /****************************************************/
 void Graph::GenLay() {
@@ -127,17 +126,25 @@ void Graph::GenLay() {
     for (int i=0; i<LAYER_HEIGHT; i++) {
         for (int j = 0; j < LAYER_WIDTH; j++) {
             level[i][j].color = rand() % COLORS_COUNT;
-            level[i][j].visited = false;    /** initailized all cells as unvisited */
             level[i][j].cntneighb = 0;
-            level[i][j].move = 999;
             level[i][j].position = i*LAYER_WIDTH + j + 1;
             level[i][j].groupID = level[i][j].position+10;
             switch (LEVEL_COMPLEXITY) {
                 case 0: { /** easy levels 2 rands */
                     if (j != 0 && rand() % 2 && rand() % 2) level[i][j].color = level[i][j - 1].color;
                     if (i != 0 && rand() % 2 && rand() % 2) level[i][j].color = level[i - 1][j].color;
+                    break;
                 }
-
+                case 1: { /** medium levels 3 rands */
+                    if (j != 0 && rand() % 2 && rand() % 2 && rand() % 2) level[i][j].color = level[i][j - 1].color;
+                    if (i != 0 && rand() % 2 && rand() % 2 && rand() % 2) level[i][j].color = level[i - 1][j].color;
+                    break;
+                }
+                case 2: { /** hard levels 4 rands */
+                    if (j != 0 && rand() % 2 && rand() % 2 && rand() % 2 && rand() % 2) level[i][j].color = level[i][j - 1].color;
+                    if (i != 0 && rand() % 2 && rand() % 2 && rand() % 2 && rand() % 2) level[i][j].color = level[i - 1][j].color;
+                    break;
+                }
             }
         }
     }
@@ -323,7 +330,6 @@ void Graph::BFS() {
         }
     }
 
-
     cout << endl << endl;
 
     for (int n = 0; n < (int)colorgroups.size(); n++) {
@@ -331,11 +337,68 @@ void Graph::BFS() {
     }
 }
 /****************************************************/
+void Graph::testandWrite() {
+    int cnt = 0;
+    ofstream outfile("levels.txt");
+    while (cnt != NUMBER_OF_LEVELS) {
+
+        /** Generate the level */
+        GenLay();
+        int test = colorgroups[finish].move;
+
+        switch (LEVEL_COMPLEXITY) {
+            case 0: {
+                if ( test < 4 || test > 6 ) break;
+                outfile << "Easy level: " << (cnt + 1) << endl;
+                for (int i = 0; i < LAYER_HEIGHT; i++) {
+                    for (int j = 0; j < LAYER_WIDTH; j++) {
+                        outfile << level[i][j].color;
+                        if (j == LAYER_WIDTH - 1) outfile << endl;
+                        else outfile << " ";
+                    }
+                }
+                outfile << "Minimum move: " << colorgroups[finish].move << endl << endl;
+                cnt++;
+                break;
+            }
+            case 1: {
+                if ( test < 5 || test > 7 ) break;
+                outfile << "Medium level: " << (cnt + 1) << endl;
+                for (int i = 0; i < LAYER_HEIGHT; i++) {
+                    for (int j = 0; j < LAYER_WIDTH; j++) {
+                        outfile << level[i][j].color;
+                        if (j == LAYER_WIDTH - 1) outfile << endl;
+                        else outfile << " ";
+                    }
+                }
+                outfile << "Minimum move: " << colorgroups[finish].move << endl << endl;
+                cnt++;
+                break;
+            }
+            case 2: {
+                if ( test < 6 || test > 8 ) break;
+                outfile << "Hard level: " << (cnt + 1) << endl;
+                for (int i = 0; i < LAYER_HEIGHT; i++) {
+                    for (int j = 0; j < LAYER_WIDTH; j++) {
+                        outfile << level[i][j].color;
+                        if (j == LAYER_WIDTH - 1) outfile << endl;
+                        else outfile << " ";
+                    }
+                }
+                outfile << "Minimum move: " << colorgroups[finish].move << endl << endl;
+                cnt++;
+                break;
+            }
+        }
+    }
+    outfile.close();
+}
+/****************************************************/
 int main() {
 
     /** Create a graph */
     Graph g;
 
-    /** Generate the level */
-    g.GenLay();
+    /** Testing and write 10 levels to file */
+    g.testandWrite();
 }
