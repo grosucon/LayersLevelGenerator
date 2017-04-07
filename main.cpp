@@ -152,14 +152,6 @@ void Graph::GenLay() {
     level[start_x = (LAYER_HEIGHT-1)][start_y = rand() % LAYER_WIDTH].color=START_NR; /** rand start and */
     level[finish_x = 0][finish_y = rand() % LAYER_WIDTH].color=FINISH_NR;             /** final cell     */
 
-    for (int i = 0; i < LAYER_HEIGHT; i++) {
-        for (int j = 0; j < LAYER_WIDTH; j++) {
-            cout << level[i][j].color;
-            if ( j == LAYER_WIDTH - 1 ) cout << endl;
-            else cout << " ";
-        }
-    }
-
     /** Set the neighbours cells */
     setNeighbours();
 }
@@ -222,16 +214,6 @@ void Graph::setIDgroupcolor() {
 
     /** Create the color group and its neighbours */
     createColGr();
-
-    cout << endl;
-
-    for (int i = 0; i < LAYER_HEIGHT; i++) {
-        for (int j = 0; j < LAYER_WIDTH; j++) {
-            cout << level[i][j].groupID;
-            if ( j == LAYER_WIDTH - 1 ) cout << endl;
-            else cout << " ";
-        }
-    }
 }
 /****************************************************/
 void Graph::createColGr() {
@@ -280,13 +262,6 @@ void Graph::createColGr() {
         if ( colorgroups[n].id == level[finish_x][finish_y].groupID )   finish = n;  /** final pos     */
     }
 
-    for (int n = 0; n < (int)colorgroups.size(); n++) {
-        cout << colorgroups[n].id << " : ";
-        for (int z = 0; z < (int)colorgroups[n].neighbours.size(); z++)
-            cout << colorgroups[n].neighbours[z] << " ";
-        cout << endl;
-    }
-
     /** Set the min move to each group */
     BFS();
 }
@@ -299,17 +274,12 @@ void Graph::BFS() {
 
     colorgroups[start].move = 0;         /** mark the first move on the start group */
     colorgroups[start].visited = true;   /** mark it as visited */
-    cout << "Breadth first Search starting from group ";
-    cout << colorgroups[start].id << " : " << endl;
 
     /** unless the queue is empty */
     while (!Q.isEmpty()) {
 
         /** pop the group from the queue */
         int v = Q.dequeue();
-
-        /** display the visited group */
-        cout << colorgroups[v].id << " ";
 
         /** from the visited group visit all neighbours */
         for (int i = 0; i < (int)colorgroups[v].neighbours.size(); i++) {
@@ -325,15 +295,9 @@ void Graph::BFS() {
                 colorgroups[w].visited = true;
             }
 
-                /** marks the move to the group */
-                if ( colorgroups[w].move > (colorgroups[v].move + 1) ) colorgroups[w].move = colorgroups[v].move+1;
+            /** marks the move to the group */
+            if ( colorgroups[w].move > (colorgroups[v].move + 1) ) colorgroups[w].move = colorgroups[v].move+1;
         }
-    }
-
-    cout << endl << endl;
-
-    for (int n = 0; n < (int)colorgroups.size(); n++) {
-        cout << colorgroups[n].id << " : " << colorgroups[n].move << endl;
     }
 }
 /****************************************************/
