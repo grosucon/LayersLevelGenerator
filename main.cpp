@@ -3,16 +3,15 @@
 #include <vector>
 #include <algorithm>
 #include <fstream>
+#include <assert.h>
 using namespace std;
 
 #define LEVEL_COMPLEXITY 0  /** 0 - easy | 1 - medium | 2 - hard */
-#define NUMBER_OF_LEVELS 1 /** Choose how much levels you want to generate */
-#define COLORS_COUNT 5      /** colors numbers 0-4 */
-#define LAYER_HEIGHT 10
+#define COLORS_COUNT 6      /** colors numbers 0 - COLORS_COUNT-1 */
+#define START_NR 6          /** equal with COLORS_COUNT */
+#define FINISH_NR 7         /** equal with COLORS_COUNT+1 */
 #define LAYER_WIDTH 6
-#define START_NR 5
-#define FINISH_NR 6
-#define BLOCK_NR 7
+#define LAYER_HEIGHT 10
 
 /****************************************************/
 struct node {
@@ -74,8 +73,8 @@ struct cell {
     int groupID; /** ID of color group */
     int position;
     int cntneighb;
-    int x[4]; /** coordinates of      */
-    int y[4]; /** neighbours on level */
+    int x[4];  /** coordinates of      */
+    int y[4];  /** neighbours on level */
 };
 
 struct group {
@@ -133,7 +132,7 @@ void Graph::GenLay() {
         for (int j = 0; j < LAYER_WIDTH; j++) {
             level[i][j].color = rand() % COLORS_COUNT;
             level[i][j].cntneighb = 0;
-            level[i][j].position = i*LAYER_WIDTH + j + 1;
+            level[i][j].position = i * LAYER_WIDTH + j + 1;
             level[i][j].groupID = level[i][j].position+10;
             switch (LEVEL_COMPLEXITY) {
                 case 0: { /** easy levels 2 rands */
@@ -264,7 +263,7 @@ void Graph::createColGr() {
         sort( colorgroups[n].neighbours.begin(), colorgroups[n].neighbours.end() );
         colorgroups[n].neighbours.erase( unique( colorgroups[n].neighbours.begin(), colorgroups[n].neighbours.end() ), colorgroups[n].neighbours.end() );
         colorgroups[n].position = n;
-        if ( colorgroups[n].id == level[start_x][start_y].groupID )     start = n;   /** set start and */
+        if ( colorgroups[n].id == level[start_x][start_y].groupID )     start  = n;  /** set start and */
         if ( colorgroups[n].id == level[finish_x][finish_y].groupID )   finish = n;  /** final pos     */
     }
 
@@ -305,60 +304,52 @@ void Graph::BFS() {
             if ( colorgroups[w].move > (colorgroups[v].move + 1) ) colorgroups[w].move = colorgroups[v].move+1;
         }
     }
+
+    level[finish_x][finish_y].color = START_NR;
 }
 /****************************************************/
 void Graph::testandWrite() {
-    int cnt = 0;
-    ofstream outfile("levels.txt");
-    while (cnt != NUMBER_OF_LEVELS) {
+    ofstream outfile("1.lvl");
 
-        /** Generate the level */
-        GenLay();
-        int test = colorgroups[finish].move;
+    /** Generate the level */
+    GenLay();
 
-        switch (LEVEL_COMPLEXITY) {
-            case 0: {
-                if ( test < 4 || test > 6 ) break;
-                outfile << "Easy level: " << (cnt + 1) << endl;
-                for (int i = 0; i < LAYER_HEIGHT; i++) {
-                    for (int j = 0; j < LAYER_WIDTH; j++) {
-                        outfile << level[i][j].color;
-                        if (j == LAYER_WIDTH - 1) outfile << endl;
-                        else outfile << " ";
-                    }
+    switch (LEVEL_COMPLEXITY) {
+        case 0: {
+            outfile << LAYER_WIDTH << " " << LAYER_HEIGHT << " " << start_x << " " << start_y << " " << finish_x
+                    << " " << finish_y << " " << colorgroups[finish].move << endl;
+            for (int i = 0; i < LAYER_HEIGHT; i++) {
+                for (int j = 0; j < LAYER_WIDTH; j++) {
+                    outfile << level[i][j].color;
+                    if (j == LAYER_WIDTH - 1) outfile << endl;
+                    else outfile << " ";
                 }
-                outfile << "Minimum move: " << colorgroups[finish].move << endl << endl;
-                cnt++;
-                break;
             }
-            case 1: {
-                if ( test < 5 || test > 7 ) break;
-                outfile << "Medium level: " << (cnt + 1) << endl;
-                for (int i = 0; i < LAYER_HEIGHT; i++) {
-                    for (int j = 0; j < LAYER_WIDTH; j++) {
-                        outfile << level[i][j].color;
-                        if (j == LAYER_WIDTH - 1) outfile << endl;
-                        else outfile << " ";
-                    }
+            break;
+        }
+        case 1: {
+            outfile << LAYER_WIDTH << " " << LAYER_HEIGHT << " " << start_x << " " << start_y << " " << finish_x
+                    << " " << finish_y << " " << colorgroups[finish].move << endl;
+            for (int i = 0; i < LAYER_HEIGHT; i++) {
+                for (int j = 0; j < LAYER_WIDTH; j++) {
+                    outfile << level[i][j].color;
+                    if (j == LAYER_WIDTH - 1) outfile << endl;
+                    else outfile << " ";
                 }
-                outfile << "Minimum move: " << colorgroups[finish].move << endl << endl;
-                cnt++;
-                break;
             }
-            case 2: {
-                if ( test < 6 || test > 8 ) break;
-                outfile << "Hard level: " << (cnt + 1) << endl;
-                for (int i = 0; i < LAYER_HEIGHT; i++) {
-                    for (int j = 0; j < LAYER_WIDTH; j++) {
-                        outfile << level[i][j].color;
-                        if (j == LAYER_WIDTH - 1) outfile << endl;
-                        else outfile << " ";
-                    }
+            break;
+        }
+        case 2: {
+            outfile << LAYER_WIDTH << " " << LAYER_HEIGHT << " " << start_x << " " << start_y << " " << finish_x
+                    << " " << finish_y << " " << colorgroups[finish].move << endl;
+            for (int i = 0; i < LAYER_HEIGHT; i++) {
+                for (int j = 0; j < LAYER_WIDTH; j++) {
+                    outfile << level[i][j].color;
+                    if (j == LAYER_WIDTH - 1) outfile << endl;
+                    else outfile << " ";
                 }
-                outfile << "Minimum move: " << colorgroups[finish].move << endl << endl;
-                cnt++;
-                break;
             }
+            break;
         }
     }
     outfile.close();
@@ -366,9 +357,15 @@ void Graph::testandWrite() {
 /****************************************************/
 int main() {
 
+    assert(LEVEL_COMPLEXITY >= 0 && LEVEL_COMPLEXITY <= 2);
+    assert(COLORS_COUNT >= 0 && LAYER_HEIGHT >= 0 && LAYER_HEIGHT >= 0);
+    assert(COLORS_COUNT == START_NR && COLORS_COUNT == FINISH_NR - 1);
+
     /** Create a graph */
     Graph g;
 
     /** Testing and write n levels to file */
     g.testandWrite();
+
+    return 0;
 }

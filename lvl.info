@@ -1,0 +1,22 @@
+// INFO
+// This is a reference file for level representation
+// Bottom left corner in the coordinate system is 0 0
+// 
+// Conditionals
+// Start point != End point
+// startX < width && startX >= 0
+// endX < width && endX >= 0
+// startY < height && startY >= 0
+// endY < height && endY >= 0
+// cell > 0 && cell < 6
+// layers count > 0 && layers count < 4
+// min move
+
+[width] [height] [startX] [startY] [endX] [endY] [layers count] [min move]
+[cell] [cell] …width… [cell]
+…height…
+[cell] [cell] …width… [cell]
+…layers count…
+[cell] [cell] …width… [cell]
+…height…
+[cell] [cell] …width… [cell]
